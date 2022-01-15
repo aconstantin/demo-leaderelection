@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    password: ${DB_PASSWORD:leaderelection}
+    url: jdbc:postgresql://${DB_HOSTNAME:localhost}:${DB_PORT:12345}/${DB_NAME:leaderelection}
+    username: ${DB_USERNAME:leaderelection}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,beans

@@ -1,0 +1,10 @@
+version: '3.6'
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - "12345:5432"
+    environment:
+      - POSTGRES_USER=leaderelection
+      - POSTGRES_PASSWORD=leaderelection
+      - POSTGRES_INITDB_ARGS=--encoding utf8
