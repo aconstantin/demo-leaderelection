@@ -23,7 +23,15 @@ public class IntegrationConfiguration {
 
     @Bean
     public LockRepository lockRepository(final DataSource dataSource) {
-        return new DefaultLockRepository(dataSource);
+        DefaultLockRepository defaultLockRepository = new DefaultLockRepository(dataSource);
+
+        /*
+         the time (in milliseconds) to expire dead locks
+
+         DefaultLockRepository.DEFAULT_TTL is 10 seconds
+         */
+        // defaultLockRepository.setTimeToLive(DefaultLockRepository.DEFAULT_TTL);
+        return defaultLockRepository;
     }
 
     @Bean
@@ -34,8 +42,25 @@ public class IntegrationConfiguration {
     @Bean
     public LockRegistryLeaderInitiator leaderInitiator(final LockRegistry lockRegistry) {
         final var lockRegistryLeaderInitiator = new LockRegistryLeaderInitiator(lockRegistry);
-        lockRegistryLeaderInitiator.setHeartBeatMillis(5000L);
-        lockRegistryLeaderInitiator.setBusyWaitMillis(1000L);
+
+        /*
+        Time in milliseconds to wait in between attempts to re-acquire the lock, once it is held.
+        The heartbeat time has to be less than the remote lock expiry period, if there is one,
+        otherwise other nodes can steal the lock while we are sleeping here.
+         */
+        // is less than DefaultLockRepository.DEFAULT_TTL which is 10 seconds
+        lockRegistryLeaderInitiator.setHeartBeatMillis(5000L); // default would be 500ms
+
+        /*
+         Time in milliseconds to wait in between attempts to acquire the lock, if it is not held.
+
+         The longer this is, the longer the system can be leaderless, if the leader dies.
+
+         If a leader dies without releasing its lock, the system might still have to wait for the old lock to expire,
+         but after that it should not have to wait longer than the busy wait time to get a new leader.
+         */
+        lockRegistryLeaderInitiator.setBusyWaitMillis(1000L);// default would be 50ms
+
         lockRegistryLeaderInitiator.setApplicationEventPublisher(applicationEventPublisher);
         return lockRegistryLeaderInitiator;
     }
